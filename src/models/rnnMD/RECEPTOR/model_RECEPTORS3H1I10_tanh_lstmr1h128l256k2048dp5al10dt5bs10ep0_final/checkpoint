@@ -1,0 +1,3 @@
+model_checkpoint_path: "model"
+all_model_checkpoint_paths: "..\\model_RECEPTORS3H1I10_tanh_lstmr1h128l256k2048dp5al10dt5bs10ep0\\model"
+all_model_checkpoint_paths: "model"
