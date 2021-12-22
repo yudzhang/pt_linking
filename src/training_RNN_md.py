@@ -1096,5 +1096,8 @@ if __name__ == '__main__':
     epoch = 1000
     lr = 1e-1
 
-    runRNN_md_train(scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
+    # runRNN_md_train(scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
+    #                 delta, alpha, dropoutt, batch_size, epoch, lr, togit=1)
+    
+    runRNN_md_test(scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
                     delta, alpha, dropoutt, batch_size, epoch, lr, togit=1)
