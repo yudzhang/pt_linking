@@ -1073,7 +1073,7 @@ def runRNN_md_test_multi(scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
 
 
 if __name__ == '__main__':
-    scenarios = ['RECEPTOR'] #['RECEPTOR', 'MICROTUBULE', 'VESICLE', 'VIRUS']
+    scenarios = ['MICROTUBULE'] #['RECEPTOR', 'MICROTUBULE', 'VESICLE', 'VIRUS']
     ss = [3]
     oo = [1]
     ff = [10]

@@ -130,6 +130,7 @@ def selu(x):
         return scale * tf.where(x >= 0.0, x, alpha * tf.nn.elu(x))
 
 
+# 
 def wxb_layer(inputs, in_size, out_size, n_layer, truncate=None, activation_function=None):
     # add one more layer and return the output of this layer
     with tf.name_scope('wxb_layer'):
@@ -1107,7 +1108,7 @@ class MotionRHCNN(object):
             act = selu
         else:
             act = None
-
+        # placeholder初始化空变量
         with tf.variable_scope('inputs'):
             # tf Graph input layer
             bs = None
@@ -1121,8 +1122,8 @@ class MotionRHCNN(object):
             self.d = tf.placeholder(tf.float32, [bs, 1], name='cls')
             self._dropout = tf.placeholder(tf.float32, [], name='keep_prop')
             self._learningrate = tf.placeholder(tf.float32, [], name='lr')
-
-        with tf.variable_scope('features'):
+        # 从xp提取cnn特征，xp是合并了x和y
+        with tf.variable_scope('features'): 
             # define cells for rnn and dropout between layers
             conv11 = tf.layers.conv1d(self.xp, self._H, 1, padding='same', activation=None)
             conv12 = tf.layers.conv1d(self.xp, self._H, 2, padding='same', activation=None)
@@ -1131,7 +1132,7 @@ class MotionRHCNN(object):
             conv15 = tf.layers.conv1d(self.xp, self._H, 5, padding='same', activation=None)
             fxy = tf.concat([conv11, conv12, conv13, conv14, conv15], axis=2)
             fx, fy = tf.split(fxy, [self._lstms, self._lstmo], axis=1)
-
+        # 合并self.x原始输出和fxcnn提取的特征，并定义rnn实例，以及经过rnn，得到最后的输出  
         with tf.variable_scope('rnnx'):
             # define cells for rnn and dropout between layers
             x_con = tf.concat([self.x, fx], 2)
@@ -1170,7 +1171,7 @@ class MotionRHCNN(object):
                 else:
                     x_last_output = tf.concat([self.x_last_state[0], self.x_last_state[1],
                                                self.x_last_state[2]], 1)
-
+        # 候选y也是同样的，合并原+cnn提取，fc提取特征
         with tf.variable_scope('fcy'):
             # define fully connected layer for t+1 displacement vector
             y_con = tf.concat([self.y, fy], 2)
@@ -1179,29 +1180,29 @@ class MotionRHCNN(object):
             y_fc = tf.layers.Dense(self._L, activation=act)(y_dp)
             y_dp = tf.layers.Dropout(self._dropout)(y_fc)
             y_output = tf.layers.Flatten()(y_dp)
-
+        # concatenate x部分和y部分
         with tf.variable_scope('conca'):
             # concatenate two vectors x_output and y_output
             con = tf.concat([x_output, y_output], 1)
             conca = tf.layers.Dense(self._k, activation=act)(con)
             concadp = tf.layers.Dropout(self._dropout)(conca)
-
+        # 预测关联概率的二分类网络
         with tf.variable_scope('predc'):
             self.pred = wxb_layer(concadp, self._k, self._nclasses, n_layer='c',
                                   activation_function=act)
             self.predc = tf.nn.softmax(self.pred)
-
+        # 预测关联cost的
         with tf.variable_scope('predd'):
             self.predd = wxb_layer(concadp, self._k, 1, n_layer='d', truncate=False,
                                    activation_function=None)
-
+        # 预测下一时刻位置的
         with tf.variable_scope('predy'):
             fc = tf.layers.Dense(self._k, activation=None)(x_last_output)
             dp = tf.layers.Dropout(self._dropout)(fc)
             self.predy = wxb_layer(dp, self._k, self._noutput, n_layer='y', truncate=False,
                                    activation_function=None)
             self.nextloc = tf.add(self.xlastloc, self.predy)
-
+        
         with tf.name_scope('loss'):
             self.loss()
 
