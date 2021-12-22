@@ -136,15 +136,15 @@ def wxb_layer(inputs, in_size, out_size, n_layer, truncate=None, activation_func
     with tf.name_scope('wxb_layer'):
         Weights = weight_variable((in_size, out_size), truncate=truncate)
         Biases = bias_variable((out_size,), 0.1)
-        variable_summaries('layer_' + n_layer + '/weights', Weights)
-        variable_summaries('layer_' + n_layer + '/bias', Biases)
+        # variable_summaries('layer_' + n_layer + '/weights', Weights)
+        # variable_summaries('layer_' + n_layer + '/bias', Biases)
         with tf.name_scope('Wx_plus_b'):
             Wx_plus_b = tf.add(tf.matmul(inputs, Weights), Biases)
         if activation_function is None:
             outputs = Wx_plus_b
         else:
             outputs = activation_function(Wx_plus_b, )
-        variable_summaries('layer_' + n_layer + '/outputs', outputs)
+        # variable_summaries('layer_' + n_layer + '/outputs', outputs)
         return outputs
 
 
@@ -1202,7 +1202,7 @@ class MotionRHCNN(object):
             self.predy = wxb_layer(dp, self._k, self._noutput, n_layer='y', truncate=False,
                                    activation_function=None)
             self.nextloc = tf.add(self.xlastloc, self.predy)
-        
+
         with tf.name_scope('loss'):
             self.loss()
 
@@ -1217,7 +1217,7 @@ class MotionRHCNN(object):
     def huberloss(self):
         x = tf.abs(tf.subtract(self.nextloc, self.pos))
         x = tf.where(x <= self._delta, 0.5 * tf.square(x), self._delta * (x - 0.5 * self._delta))
-        return tf.reduce_sum(x)
+        return tf.reduce_mean(x)
 
     def loss(self):
         with tf.name_scope('RMSE'):
@@ -1228,16 +1228,16 @@ class MotionRHCNN(object):
         with tf.name_scope('CROSS_ENTROPY'):
             # cross entropy to give us the loss of the classification
             # cross = -tf.reduce_sum(self.c * tf.log(self.predc))  # tf.clip_by_value(self.predc, 1e-10, 1.0)))
-            cross = tf.reduce_sum(
+            cross = tf.reduce_mean(
                 tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.argmax(self.c, 1),
                                                                logits=self.pred))
         with tf.name_scope('CMSE'):
             # cross entropy to give us the loss of the classification
-            cmse = tf.reduce_sum(tf.squared_difference(self.predd, self.d))
+            cmse = tf.reduce_mean(tf.squared_difference(self.predd, self.d))
             # cmse = tf.losses.mean_squared_error(self.d, self.predd)
         with tf.name_scope('TOTAL_LOSS'):
             # total error
-            self.total_error = rmse + cross + self._alpha * cmse
+            self.total_error = rmse*0.02 + cross + self._alpha * cmse*0.1
         tf.summary.scalar('rmse_loss', rmse)
         tf.summary.scalar('cross_entropy_loss', cross)
         tf.summary.scalar('cmse_loss', cmse)
@@ -1246,14 +1246,19 @@ class MotionRHCNN(object):
 
     def pred_power(self):
         predictions = tf.cast(tf.argmax(self.predc, 1), tf.float32)
+        # print(predictions.shape)
         actuals = tf.cast(tf.argmax(self.c, 1), tf.float32)
+
+        ones_l_actuals = tf.ones_like(actuals)
         with tf.name_scope('err'):
-            self.error = tf.reduce_mean(tf.cast(tf.not_equal(actuals, predictions), tf.float32))
+            self.error = tf.reduce_mean(tf.divide(tf.cast(tf.not_equal(actuals, predictions), tf.float32), tf.reduce_sum(ones_l_actuals)))
         with tf.name_scope('rmseloss'):
             self.rmse = tf.reduce_mean(
                 tf.sqrt(tf.reduce_sum(tf.squared_difference(self.nextloc, self.pos), axis=1)))
+            #  print(self.rmse.shape)
         with tf.name_scope('cmseloss'):
             self.cmse = tf.reduce_mean(tf.abs(self.predd - self.d))
+
         ones_like_actuals = tf.ones_like(actuals)
         zeros_like_actuals = tf.zeros_like(actuals)
         ones_like_predictions = tf.ones_like(predictions)
@@ -1288,7 +1293,7 @@ class MotionRHCNN(object):
                 precision = tf.constant(0)
             else:
                 precision = tp / (tp + fp)
-
+        tf.summary.scalar('error',self.error)
         tf.summary.scalar('rmse', self.rmse)
         tf.summary.scalar('cmse', self.cmse)
         tf.summary.scalar('accuracy', accuracy)

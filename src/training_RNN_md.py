@@ -24,11 +24,13 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def training(nc, togit=1):
     # Training Parameters
+    print('------------train--------------------')
     path_m = 'models/rnnMD/' + nc.scenario + '/model_' + nc.fullname
     path_log = 'logs/rnnMD/' + nc.scenario + '/log' + str(nc.lstms) \
                + '_H' + str(nc.lstmo) + '_I' + str(nc.feature)
 
     # load data
+    print('==>>load data')
     train_x, train_xp, train_y, train_pos, train_c, train_l, train_d, \
     test_x, test_xp, test_y, test_pos, test_c, test_l, test_d = \
         loadRNNdata(nc.scenario, nc.lstms, nc.lstmo, nc.feature, True, togit)
@@ -63,6 +65,7 @@ def training(nc, togit=1):
         os.makedirs(path_m + '_final')
 
     # reset and initializing
+    print('==>>reset and initializing')
     # tf.reset_default_graph()
     tf.compat.v1.reset_default_graph()
     if nc.feature < 6:
@@ -81,7 +84,7 @@ def training(nc, togit=1):
             n_input = 8
             n_output = 2
             n_inputp = 2
-
+    print('==>> choose the model, create instance')
     if nc.feature == 0:  # RNN learned
         motion = MotionRRNN(n_input, n_output, nc.n_classes, nc.lstms, nc.lstmo, nc.R, nc.H, nc.L,
                             nc.k, nc.act, nc.rnn, nc.delta, nc.alpha, False, False)
@@ -118,7 +121,7 @@ def training(nc, togit=1):
     elif nc.feature == 11:
         motion = MotionRHCNN(n_input, n_inputp, n_output, nc.n_classes, nc.lstms, nc.lstmo, nc.R,
                              nc.H, nc.L, nc.k, nc.act, nc.rnn, nc.delta, nc.alpha, False, True)
-
+    # create log model folder
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=nc.gpu)
     # sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
     sess = tf.Session()
@@ -152,9 +155,12 @@ def training(nc, togit=1):
     # Training iterations
     i = 1
     lr = nc.maxlearning_rate
+    print('==>>training iteration')
     while i <=nc.epoch:
+        print('==>>Train Epoch:{}'.format(i))
     #while i <= nc.epoch or (i <= nc.epoch * (nc.lstmo + 1) and lr >= nc.minlearning_rate):
         for k in range(nc.no_of_batches):
+            print('==>>Train Epoch:{}, Batch step:{}'.format(i,k))
             ptr = k * nc.batch_size
             if nc.feature < 4:
                 tx, tpos, tc, tl, td = train_x[ptr:ptr + nc.batch_size], \
@@ -590,7 +596,7 @@ def runRNN_md_train(scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
                             for r in rr:
                                 for h in hh:
                                     for l, k in zip(ll, kk):
-                                        print('----------------------------------------')
+                                        print('------------runRNN_md_train----------------------------')
                                         nc = config(scenario, st, ot, ft, act, rnn, r, h, l, k,
                                                     delta, alpha, dropout, batch_size, epoch, lr)
                                         stritem = 'Training ' + 'RNN ' + nc.fullname
@@ -1084,11 +1090,11 @@ if __name__ == '__main__':
     ll = [256]
     kk = [2048]
     delta = 0.5
-    alpha = 0.1
+    alpha = 1
     dropoutt = 0.5
     batch_size = 10000
-    epoch = 10
-    lr = 1e-3
+    epoch = 1000
+    lr = 1e-1
 
     runRNN_md_train(scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
                     delta, alpha, dropoutt, batch_size, epoch, lr, togit=1)
