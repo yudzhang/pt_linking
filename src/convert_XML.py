@@ -265,7 +265,7 @@ def writeXMLilya(pospath, filepath, no, method, thrs, interp, filetype='xml'):
             pos = readXMLilya(pospath)
             pos = filterNPYilya(pos, interp, is3D, 2)
         else:
-            pos = np.load(pospath)
+            pos = np.load(pospath,allow_pickle=True)
         with open(filepath, "w+") as output:
             output.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n')
             output.write('<root>\n')

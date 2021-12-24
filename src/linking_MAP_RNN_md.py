@@ -5,7 +5,8 @@ import time
 import re
 import numpy as np
 import math
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 import gurobipy as grb
 from data_RNN_md import getData, getSequence, getDets, trackI
 from model_RNN_md import MotionRNN, MotionCRNN, MotionRRNN, MotionRHRNN, MotionRHCNN

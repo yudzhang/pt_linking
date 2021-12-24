@@ -2051,11 +2051,11 @@ def getSequence(position, true, timep, tc, gate, gatez, dv='', togit=False):
         is3D = False
         n = 2
 
-    s = 10
+    s = tc.lstms
     if togit:
         pathsave = '/home/yaoyao/IDEA/dl/data/MTJ/RNNMD/' + tc.scenario + '/RNNmd1' + '/'
     else:
-        pathsave = '/media/yyao/work/data/MTJ/RNNMD/' + tc.scenario + '/RNNmd1' + '/'
+        pathsave = 'D:/research/tracking/1028_trackingChallenge_dataset/npz_split_npy/' + tc.scenario + '/RNNmd10' + '/'
     r = np.load(pathsave + 'r' + str(s) + str(tc.lstmo) + '.npy')  # normalization
 
     if tc.feature < 6:

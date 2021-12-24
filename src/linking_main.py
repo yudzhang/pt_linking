@@ -623,7 +623,7 @@ def runilya(method, typepath, type, no, tt, tc, imagesize=512, gatexy=30, gatez=
             usepred=True, interp=False, isbest=False, isprint=False, togit=1):
     print(type +' '+ no)
     if togit == 1:
-        pp = '/home/yaoyao/IDEA/dl/'
+        pp = 'D:/research/tracking/1028_trackingChallenge_dataset/XML/'
         ppsave = '/home/yaoyao/IDEA/dl/'
     elif togit == 0:
         pp = '/home/yyao/IDEA/dl/'
@@ -636,7 +636,7 @@ def runilya(method, typepath, type, no, tt, tc, imagesize=512, gatexy=30, gatez=
 
     is3D = False
 
-    path_m = 'models/rnnMD/' + tc.scenario + '/model_' + tc.fullname
+    path_m = 'D:/research/tracking/1216_exp_eric/pt_linking/src/models/rnnMD/' + tc.scenario + '/model_' + tc.fullname
 
     if not isbest:
         path_m = path_m + '_final'
@@ -653,7 +653,8 @@ def runilya(method, typepath, type, no, tt, tc, imagesize=512, gatexy=30, gatez=
              + '/' + method + '-CLRE' + str(tc.lstms) + str(tc.lstmo) + str(usepred)[0] + \
              str(interp)[0] + str(isthrs)[0] + str(tc.feature) + stt + '/'
 
-    ref = pp + 'data/ilya/'+type+'/'+typepath + (no) + '-isbi.xml'
+    # ref = pp + 'data/ilya/'+type+'/'+typepath + (no) + '-isbi.xml'
+    ref = pp + 'MICROTUBULE snr 1 density high.xml'
     print(ref)
     if os.path.exists(ref):
         # Make a path to be saved in.
@@ -669,7 +670,8 @@ def runilya(method, typepath, type, no, tt, tc, imagesize=512, gatexy=30, gatez=
 
             print(type + no + str(usepred)[0] + str(interp)[0] + str(isthrs)[0] + str(tc.feature)
                   + ' GT_' + str(thrs))
-            path = pp + 'data/ilya/'+type+'/'+typepath + (no) + '-.detections.xml.txt'
+            # path = pp + 'data/ilya/'+type+'/'+typepath + (no) + '-.detections.xml.txt'
+            path = ref.replace('.xml','.detections.xml') + '.txt'
             npy = saveTo + 'RNN' + str(
                 thrs) + '_' + str(tc.lstms) + str(tc.lstmo) + str(gatexy) + 'pos.npy'
             can = saveTo + 'RNN' + str(
@@ -908,7 +910,7 @@ def compareThrsilya(method, type, no, tt, tc, gatexy, gatez, usepred, interp, is
 
 if __name__ == '__main__':
 
-    ss = ['RECEPTOR']#, 'VESICLE', 'VIRUS']#['RECEPTOR', 'MICROTUBULE', 'VESICLE', 'VIRUS']
+    ss = ['MICROTUBULE']#, 'VESICLE', 'VIRUS']#['RECEPTOR', 'MICROTUBULE', 'VESICLE', 'VIRUS']
     lss = [3]
     loo = [1]
     ff = [10]
@@ -919,8 +921,8 @@ if __name__ == '__main__':
             for lo in loo:
                 for f in ff:
                     tc = test_config(scenario=s, lstms=ls, lstmo=lo, i=f, act='tanh', rnn='lstm',
-                                     R=1, H=128, L=256, k=2048, delta=0.5, alpha=0.1, dropout=0.5,
-                                     bs=80000, epoch=800, lr=1e-3)
+                                     R=1, H=128, L=256, k=2048, delta=0.5, alpha=1, dropout=0.5,
+                                     bs=10000, epoch=1000, lr=1e-1)
 
                     if t == 1:
                         tt = [0.15, 0.2, 0.25, 0.3, 0.35]#[0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
@@ -945,10 +947,10 @@ if __name__ == '__main__':
                                 typepath = '20180509 Rab11-GFP control ILAS2 x100 100ms -'
                                 runilya('MAP', typepath, type, no, tt, tc, imagesize=512, gatexy=10,
                                         gatez=5, usepred=True, interp=True, isbest=False,
-                                        isprint=False, togit=0)
+                                        isprint=False, togit=1)
                         else:
                             for no in ['02', '03', '04', '05']:
                                 typepath = '20151021 ILAS2 HeLa EB3-GFP control x100 500ms -'
                                 runilya('MAP', typepath, type, no, tt, tc, imagesize=512, gatexy=10,
                                         gatez=5, usepred=True, interp=True, isbest=False,
-                                        isprint=False, togit=0)
+                                        isprint=False, togit=1)
