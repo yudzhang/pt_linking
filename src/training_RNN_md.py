@@ -22,18 +22,18 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
-def training(nc, togit=1):
+def training(loaddatapath,mologsavepa, nc, togit=1):
     # Training Parameters
     print('------------train--------------------')
-    path_m = 'models/rnnMD/' + nc.scenario + '/model_' + nc.fullname
-    path_log = 'logs/rnnMD/' + nc.scenario + '/log' + str(nc.lstms) \
+    path_m = mologsavepa+'models/rnnMD/' + nc.scenario + '/model_' + nc.fullname
+    path_log = mologsavepa+'logs/rnnMD/' + nc.scenario + '/log' + str(nc.lstms) \
                + '_H' + str(nc.lstmo) + '_I' + str(nc.feature)
 
     # load data
     print('==>>load data')
     train_x, train_xp, train_y, train_pos, train_c, train_l, train_d, \
     test_x, test_xp, test_y, test_pos, test_c, test_l, test_d = \
-        loadRNNdata(nc.scenario, nc.lstms, nc.lstmo, nc.feature, True, togit)
+        loadRNNdata(loaddatapath, nc.scenario, nc.lstms, nc.lstmo, nc.feature, True, togit)
     nc.no_of_batches = int(len(train_x) / nc.batch_size)
     no_of_batches_test = int(len(test_x) / nc.batch_size)
     # nc.no_of_batches, no_of_batches_test, _ = loadRNNdata_batchsize(nc.scenario, nc.lstms, nc.lstmo, togit)
@@ -344,15 +344,15 @@ def training(nc, togit=1):
               + nc.fullname + ' finished.\n')
 
 
-def testing(tc, togit=1):
+def testing(loaddatapath,mologsavepa, tc, togit=1):
     # Training Parameters
-    path_m = 'models/rnnMD/' + tc.scenario + '/model_' + tc.fullname
-    path_log = 'logs/rnnMD/' + tc.scenario + '/log' + str(tc.lstms) \
+    path_m = mologsavepa+'models/rnnMD/' + tc.scenario + '/model_' + tc.fullname
+    path_log = mologsavepa+'logs/rnnMD/' + tc.scenario + '/log' + str(tc.lstms) \
                + '_H' + str(tc.lstmo) + '_I' + str(tc.feature)
     if not os.path.exists(path_log):
         os.makedirs(path_log)
     # load data
-    test_x, test_xp, test_y, test_pos, test_c, test_l, test_d = loadRNNdata(tc.scenario, tc.lstms,
+    test_x, test_xp, test_y, test_pos, test_c, test_l, test_d = loadRNNdata(loaddatapath,tc.scenario, tc.lstms,
                                                                             tc.lstmo, tc.feature,
                                                                             False, togit)
     no_of_batches_test = int(len(test_x) / tc.batch_size)
@@ -585,7 +585,7 @@ def testing(tc, togit=1):
             #          + tc.fullname + '\n' + result)
             '''
 
-def runRNN_md_train(scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
+def runRNN_md_train(loaddatapath,mologsavepa, scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
                     delta, alpha, dropout, batch_size, epoch, lr, togit=1):
     for ft in ff:
         for st in ss:
@@ -602,14 +602,14 @@ def runRNN_md_train(scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
                                         stritem = 'Training ' + 'RNN ' + nc.fullname
                                         print(stritem)
                                         start = time.time()
-                                        training(nc, togit)
+                                        training(loaddatapath,mologsavepa, nc, togit)
                                         # tc = test_config(scenario, st, ot, ft, act, rnn, H, L, k,
                                         #                 delta, alpha, dropout, batch_size, epoch, lr)
                                         # testing(tc, togit)
                                         print('Time : ', time.time() - start)
 
 
-def runRNN_md_test(scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
+def runRNN_md_test(loaddatapath,mologsavepa,scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
                    delta, alpha, dropout, batch_size, epoch, lr, togit=1):
     for ft in ff:
         for st in ss:
@@ -626,7 +626,7 @@ def runRNN_md_test(scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
                                         stritem = 'Testing ' + 'RNN ' + tc.fullname
                                         print(stritem)
                                         start = time.time()
-                                        testing(tc, togit)
+                                        testing(loaddatapath,mologsavepa, tc, togit)
                                         print('Time : ', time.time() - start)
 
 
@@ -1092,12 +1092,14 @@ if __name__ == '__main__':
     delta = 0.5
     alpha = 1
     dropoutt = 0.5
-    batch_size = 10000
-    epoch = 1000
+    batch_size = 80
+    epoch = 10
     lr = 1e-1
+    loaddatapath = 'D:/research/tracking/1028_trackingChallenge_dataset/mini_xml/'
+    mologsavepa = 'D:/research/tracking/1216_exp_eric/pt_linking/src/'
 
-    # runRNN_md_train(scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
+    # runRNN_md_train(loaddatapath,mologsavepa, scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
     #                 delta, alpha, dropoutt, batch_size, epoch, lr, togit=1)
     
-    runRNN_md_test(scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
+    runRNN_md_test(loaddatapath,mologsavepa, scenarios, ss, oo, ff, acts, rnns, rr, hh, ll, kk,
                     delta, alpha, dropoutt, batch_size, epoch, lr, togit=1)

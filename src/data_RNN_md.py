@@ -19,7 +19,7 @@ from convert_XML import writeXML, writeTXT
 
 
 # load the constructed data to memory
-def loadRNNdata(scenario, st, out, feature, istrain, togit=1):
+def loadRNNdata(loaddatapath, scenario, st, out, feature, istrain, togit=1):
     if scenario == 'VIRUS':
         n = 3
     else:
@@ -27,13 +27,14 @@ def loadRNNdata(scenario, st, out, feature, istrain, togit=1):
     # nciter = 1
     nciter = feature
 
-    if togit == 1:
-        pathsave = 'D:/research/tracking/1028_trackingChallenge_dataset/npz_split_npy/' + scenario + '/RNNmd' + str(nciter) + '/'
-    elif togit == 0:
-        pathsave = '/media/yyao/work/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(nciter) + '/'
-    else:
-        pathsave = '/nfs/home4/yao88/IDEA/dl/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(
-            nciter) + '/'
+    pathsave = loaddatapath + scenario + '/RNNmd' + str(nciter) + '/'
+    # if togit == 1:
+    #     pathsave = 'D:/research/tracking/1028_trackingChallenge_dataset/npz_split_npy/' + scenario + '/RNNmd' + str(nciter) + '/'
+    # elif togit == 0:
+    #     pathsave = '/media/yyao/work/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(nciter) + '/'
+    # else:
+    #     pathsave = '/nfs/home4/yao88/IDEA/dl/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(
+    #         nciter) + '/'
 
     if not os.path.exists(pathsave + 'p_train' + str(st) + str(out) + '.npy'):
         s = 10
@@ -488,7 +489,7 @@ def getTrackI(index, data):
     else:
         return [], data
 
-
+# input：轨迹id，
 # get tracks and random set detections to gaps
 def getTrackR(index, dataorg):
     trackorg = dataorg[dataorg[:, 4] == index]
@@ -1026,8 +1027,9 @@ def trackI(track, is3D=False):
 
 
 # create training-testing data
-def createRNNdataPloc(scenario, snr, path, s, out, gate, close, iter, features, istrain,
+def createRNNdataPloc(npzsavepath, scenario, snr, path, s, out, gate, close, iter, features, istrain,
                       dv='', gatez=3, togit=0, isspt=True):
+                      
     if scenario == 'VIRUS':
         is3D = True
         p2 = 8  # 4 virus  8
@@ -1036,23 +1038,23 @@ def createRNNdataPloc(scenario, snr, path, s, out, gate, close, iter, features, 
         is3D = False
         p2 = 4
         p3 = 50
-
-    if togit == 1:
-        pathsave = '/home/yaoyao/IDEA/dl/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(
-            iter) + '/after comb/'
-    elif togit == 0:
-        pathsave = '/media/yyao/work/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(
-            iter) + '/after comb/'
-    else:
-        pathsave = '/nfs/home4/yao88/IDEA/dl/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(
-            iter) + '/after comb/'
+    pathsave = npzsavepath + scenario + '/RNNmd' + str(iter) + '/after comb/'
+    # if togit == 1:
+    #     pathsave = '/home/yaoyao/IDEA/dl/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(
+    #         iter) + '/after comb/'
+    # elif togit == 0:
+    #     pathsave = '/media/yyao/work/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(
+    #         iter) + '/after comb/'
+    # else:
+    #     pathsave = '/nfs/home4/yao88/IDEA/dl/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(
+    #         iter) + '/after comb/'
 
     if not os.path.exists(pathsave):
         os.makedirs(pathsave)
 
-    pf = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+    pf = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1] #作为样本开头截取的padding
 
-    if snr == 1:
+    if snr == 1: #对于snr=1不增广，其他的进行四种增广
         augtypes = [1]
     else:
         augtypes = [4, 3, 2, 1]
@@ -1072,23 +1074,23 @@ def createRNNdataPloc(scenario, snr, path, s, out, gate, close, iter, features, 
         data = getData(path[pi])
         print(' Data loaded from ' + path[pi] + '   Formatting...')
         tr = np.asarray(data[:, 4])
-        tot_tracks = int(tr.max() + 1)
-        for track_aug_type in augtypes:
+        tot_tracks = int(tr.max() + 1) # 轨迹个数
+        for track_aug_type in augtypes: # 遍历所有增广类型
             cho_tracks = np.arange(tot_tracks)
-            for track_id in cho_tracks:
+            for track_id in cho_tracks: #对于每条轨迹
                 trackorg, dataproc = getTrackR(track_id, data)
                 # trackorg, dataproc = getTrackN(track_id, data)
                 # trackorg, dataproc = getTrackI(track_id, data)
                 track, dataprocaug = dataArgumentation(trackorg, dataproc, track_aug_type)
                 for index in range(out, len(track) + out):  # the last detection needed
-                    xtrack = []
+                    xtrack = [] #下面进行滑窗取样本，xtrack是一个样本，长度是s+out。
                     for i in range(index - s - out,
                                    index - out + 1):  # index-out+1 is the next true!
                         if i >= 0:
                             xtrack.append(track[i])
                         else:
-                            xtrack.append(pf)
-                    temp, xyidp, tlastpos = featureExtractX(xtrack, s, features, is3D)
+                            xtrack.append(pf) #对于开头padding -1-1-1-1
+                    temp, xyidp, tlastpos = featureExtractX(xtrack, s, features, is3D) #提取这一个样本的特征-手工特征
 
                     timeptemp = []
                     for z in range(1, out + 1):
@@ -1124,7 +1126,7 @@ def createRNNdataPloc(scenario, snr, path, s, out, gate, close, iter, features, 
                                 # else:
                                 #    print('delete')
                         '''
-                        # add some false positive detections for the first frame
+                        # 在第一帧增加一些负样本add some false positive detections for the first frame
                         if snr != 1 and (pi in [0, 1, 3, 4]) and ti == 0 and fr < 100:
                             for li in range(4 - out):
                                 det = [
@@ -1147,6 +1149,7 @@ def createRNNdataPloc(scenario, snr, path, s, out, gate, close, iter, features, 
                                 det.append(0)
                                 det = np.array(det)
                                 timepp.append(det)
+                        
                         timepp = np.asarray(timepp)
                         timep.append(timepp)
                     timep = np.asarray(timep)
@@ -1627,7 +1630,7 @@ def createRNNdataPloc(scenario, snr, path, s, out, gate, close, iter, features, 
                                 t_t.append(truetemp)
                                 d_t.append(0)
             print(len(x_t), len(x_f))
-    
+    # 保存生成的训练集或测试集
     if istrain:
         np.savez_compressed(pathsave + 'ax_F' + str(s) + str(out), x=x_f, y=y_f, t=t_f, p=p_f,
                             l=l_f, d=d_f)
@@ -1641,15 +1644,17 @@ def createRNNdataPloc(scenario, snr, path, s, out, gate, close, iter, features, 
 
 
 # splitting data into training-testing-validation
-def train_test(scenario, s, out, iter, istrain='tr', togit=0, dodelete=False, isspt=True):
-    if togit == 1:
-        pathsave = 'D:/research/tracking/1028_trackingChallenge_dataset/npz_split_npy/' + scenario + '/RNNmd' + str(iter)
-    elif togit == 0:
-        pathsave = '/media/yyao/work/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(iter)
-    else:
-        pathsave = '/nfs/home4/yao88/IDEA/dl/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(iter)
+def train_test(splitnpypath, scenario, s, out, iter, istrain='tr', togit=0, dodelete=False, isspt=True):
+    
+    pathsave = splitnpypath + scenario + '/RNNmd' + str(iter)
+    # if togit == 1:
+    #     pathsave = 'D:/research/tracking/1028_trackingChallenge_dataset/npz_split_npy/' + scenario + '/RNNmd' + str(iter)
+    # elif togit == 0:
+    #     pathsave = '/media/yyao/work/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(iter)
+    # else:
+    #     pathsave = '/nfs/home4/yao88/IDEA/dl/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(iter)
 
-    fbs = 10000
+    fbs = 100 #
 
     if istrain == 'train':
         print('Combining...')
@@ -1915,14 +1920,15 @@ def train_test(scenario, s, out, iter, istrain='tr', togit=0, dodelete=False, is
 
 
 # data normalization
-def dataNormalization(scenario, s, out, iter, togit=0, isspt=False):
-    if togit == 1:
-        pathsave = 'D:/research/tracking/1028_trackingChallenge_dataset/npz_split_npy/' + scenario + '/RNNmd' + str(iter) + '/'
-    elif togit == 0:
-        pathsave = '/media/yyao/work/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(iter) + '/'
-    else:
-        pathsave = '/nfs/home4/yao88/IDEA/dl/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(
-            iter) + '/'
+def dataNormalization(splitnpypath, scenario, s, out, iter, togit=0, isspt=False):
+    pathsave = splitnpypath + scenario + '/RNNmd' + str(iter) + '/'
+    # if togit == 1:
+    #     pathsave = 'D:/research/tracking/1028_trackingChallenge_dataset/npz_split_npy/' + scenario + '/RNNmd' + str(iter) + '/'
+    # elif togit == 0:
+    #     pathsave = '/media/yyao/work/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(iter) + '/'
+    # else:
+    #     pathsave = '/nfs/home4/yao88/IDEA/dl/data/MTJ/RNNMD/' + scenario + '/RNNmd' + str(
+    #         iter) + '/'
 
     if isspt:
         res = np.load(pathsave + 'r' + str(s) + str(out) + '.npy')
@@ -1942,8 +1948,8 @@ def dataNormalization(scenario, s, out, iter, togit=0, isspt=False):
             # res.append([255.5, 255.5])
             # res.append([255.5, 255.5])
             # res.append([5.409,4.5])
-        np.save(pathsave + 'r' + str(s) + str(out) + '.npy', res)
-
+        np.save(pathsave + 'r' + str(s) + str(out) + '.npy', res) # 单独存了一个各个维度特征的std mean
+    # 并对各个npy 见均值 除以方差
     for name in ['train', 'val', 'test']:
         x = np.load(pathsave + 'x_' + name + str(s) + str(out) + '.npy')
         y = np.load(pathsave + 'y_' + name + str(s) + str(out) + '.npy')
@@ -1963,13 +1969,16 @@ def dataNormalization(scenario, s, out, iter, togit=0, isspt=False):
 
 
 # create training-testing data for each case
-def rnnMdData(scenarios, ss, oo, ff, togit=0, isspt=False):
-    if togit == 1:
-        pp = 'D:/research/tracking/1028_trackingChallenge_dataset/XML/' #D:/research/tracking/1028_trackingChallenge_dataset/XML
-    elif togit == 0:
-        pp = '/home/yyao/IDEA/dl/'
-    else:
-        pp = '/nfs/home4/yao88/IDEA/dl/'
+def rnnMdData(datafolderpath, scenarios, ss, oo, ff, togit=0, isspt=False):
+    pp = datafolderpath
+    npzsavepath = datafolderpath
+    # if togit == 1:
+    #     pp = 'D:/research/tracking/1028_trackingChallenge_dataset/XML/' #D:/research/tracking/1028_trackingChallenge_dataset/XML
+    # elif togit == 0:
+    #     pp = '/home/yyao/IDEA/dl/'
+    # else:
+    #     pp = '/nfs/home4/yao88/IDEA/dl/'
+
     for scenario in scenarios:
         for iter in ff:
             close = 1
@@ -1998,7 +2007,7 @@ def rnnMdData(scenarios, ss, oo, ff, togit=0, isspt=False):
                             snrid) + ' density high.detections.xml.txt')
 
                     ist = True
-                    createRNNdataPloc(scenario, 7, paths, s, out, gate, close, iter,
+                    createRNNdataPloc(npzsavepath, scenario, 7, paths, s, out, gate, close, iter,
                                       features, ist, dv, gatez, togit, isspt)
 
                     paths = []
@@ -2010,20 +2019,20 @@ def rnnMdData(scenarios, ss, oo, ff, togit=0, isspt=False):
                         paths.append(pp + scenario + ' snr ' + str(
                             snrid) + ' density high.detections.xml.txt')
 
-                    ist = False
-                    createRNNdataPloc(scenario, 1, paths, s, out, gate, close, iter,
+                    ist = False #作为测试集
+                    createRNNdataPloc(npzsavepath, scenario, 1, paths, s, out, gate, close, iter,
                                       features, ist, dv, gatez, togit, isspt)
 
-                    os.system('curl -s -X POST https://api.telegram.org/'
-                              'bot459863485:AAEPUJsNI0wkf3iI8RfweGMR9u0rKiSHvuc/'
-                              'sendMessage -F chat_id=385302225 -F text=' + stritem)
+                    # os.system('curl -s -X POST https://api.telegram.org/'
+                    #           'bot459863485:AAEPUJsNI0wkf3iI8RfweGMR9u0rKiSHvuc/'
+                    #           'sendMessage -F chat_id=385302225 -F text=' + stritem)
 
                     print('Time : ', time.time() - start)
                     print('...Finished!!!\n')
 
 
 # splitting and normalize training-testing data for each case
-def rnnMdDataSplit(scenarios, ss, oo, ff, normalise, togit=0, isspt=True):
+def rnnMdDataSplit(splitnpypath, scenarios, ss, oo, ff, normalise, togit=0, isspt=True):
     for scenario in scenarios:
         for iter in ff:
             for s in ss:
@@ -2032,10 +2041,10 @@ def rnnMdDataSplit(scenarios, ss, oo, ff, normalise, togit=0, isspt=True):
                               + ' I' + str(iter) + ' N' + str(normalise)
                     print(stritem)
                     start = time.time()
-                    train_test(scenario, s, out, iter, 'train', togit, False, isspt)
-                    train_test(scenario, s, out, iter, 'test', togit, False, isspt)
+                    train_test(splitnpypath, scenario, s, out, iter, 'train', togit, False, isspt)
+                    train_test(splitnpypath, scenario, s, out, iter, 'test', togit, False, isspt)
                     if normalise:
-                        dataNormalization(scenario, s, out, iter, togit, isspt)
+                        dataNormalization(splitnpypath, scenario, s, out, iter, togit, isspt)
                     # os.system('curl -s -X POST https://api.telegram.org/'
                     #          'bot459863485:AAEPUJsNI0wkf3iI8RfweGMR9u0rKiSHvuc/'
                     #          'sendMessage -F chat_id=385302225 -F text=' + str(stritem))
@@ -2043,7 +2052,7 @@ def rnnMdDataSplit(scenarios, ss, oo, ff, normalise, togit=0, isspt=True):
                     print('...Finished!!!\n')
 
 
-def getSequence(position, true, timep, tc, gate, gatez, dv='', togit=False):
+def getSequence(pathsa, position, true, timep, tc, gate, gatez, dv='', togit=False):
     if tc.scenario == 'VIRUS':
         is3D = True
         n = 3
@@ -2052,10 +2061,11 @@ def getSequence(position, true, timep, tc, gate, gatez, dv='', togit=False):
         n = 2
 
     s = tc.lstms
-    if togit:
-        pathsave = '/home/yaoyao/IDEA/dl/data/MTJ/RNNMD/' + tc.scenario + '/RNNmd1' + '/'
-    else:
-        pathsave = 'D:/research/tracking/1028_trackingChallenge_dataset/npz_split_npy/' + tc.scenario + '/RNNmd10' + '/'
+    pathsave = pathsa + tc.scenario + '/RNNmd'+ str(tc.feature) + '/'
+    # if togit:
+    #     pathsave = '/home/yaoyao/IDEA/dl/data/MTJ/RNNMD/' + tc.scenario + '/RNNmd1' + '/'
+    # else:
+    #     pathsave = 'D:/research/tracking/1028_trackingChallenge_dataset/npz_split_npy/' + tc.scenario + '/RNNmd10' + '/'
     r = np.load(pathsave + 'r' + str(s) + str(tc.lstmo) + '.npy')  # normalization
 
     if tc.feature < 6:
@@ -2094,15 +2104,15 @@ def getSequence(position, true, timep, tc, gate, gatez, dv='', togit=False):
     if tc.lstmo == 1:
         # for the immediate next frame
         o1_true = -1
-        for o1 in range(len(timep[0])):
+        for o1 in range(len(timep[0])): #timep 是下一帧的检测点
             if len(truepoints[0]) > 0 and \
                     timep[0][o1, 0] == truepoints[0][0, 0] and \
                     timep[0][o1, 1] == truepoints[0][0, 1] and \
                     timep[0][o1, 3] == truepoints[0][0, 3]:
                 o1_true = o1
                 break
-
-        for o1 in range(len(timep[0])):
+        # 到此,如果o1_true=0则候选中有下一帧GT,如果=-1,则候选中不包括GT
+        for o1 in range(len(timep[0])): #下面一行,先判断,检测到的点,是否在track的备选范围内
             if index < len(track) and inSide(timep[0][o1], track[index], xyidp, gate, dv, gatez,
                                              is3D):
                 ytrack = []
@@ -2123,7 +2133,7 @@ def getSequence(position, true, timep, tc, gate, gatez, dv='', togit=False):
                     realp.append(0)
 
         # include pass frame [lstmo+1 times of gate] for classification :
-        # have no detections in next frame
+        # have no detections in next frame 多加一个,假设没有后续的情况
         ytrack = []
         ytrack.extend(xtrack)
         ytrack.append(pf)
@@ -2530,7 +2540,7 @@ def getSequence(position, true, timep, tc, gate, gatez, dv='', togit=False):
 
 
 if __name__ == '__main__':
-    scenarios = ['MICROTUBULE', 'VESICLE', 'RECEPTOR', 'VIRUS']
+    scenarios = ['MICROTUBULE'] # , 'VESICLE', 'RECEPTOR', 'VIRUS'
     R = 25
     # track_disp_summary()
     # for scenario in scenarios:
@@ -2543,6 +2553,7 @@ if __name__ == '__main__':
     oo = [1]
     ff = [10]
     normalise = True
-
-    # rnnMdData(scenarios, ss, oo, ff, togit=1, isspt=False)
-    rnnMdDataSplit(scenarios, ss, oo, ff, normalise, togit=1, isspt=False)
+    datafolderpath = 'D:/research/tracking/1028_trackingChallenge_dataset/mini_xml/'
+    splitnpypath = datafolderpath
+    # rnnMdData(datafolderpath, scenarios, ss, oo, ff, togit=1, isspt=False)
+    rnnMdDataSplit(splitnpypath, scenarios, ss, oo, ff, normalise, togit=1, isspt=False)

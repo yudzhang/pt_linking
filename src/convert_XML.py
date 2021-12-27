@@ -8,7 +8,7 @@ import os
 
 def filterNPY(pospath, interp, is3D, length=3):
     posFinal = []
-    pos = np.load(pospath)
+    pos = np.load(pospath, allow_pickle=True)
     if interp:
         for a in range(len(pos)):
             posi = []
@@ -257,7 +257,7 @@ def writeTXTilya(file, sort=False):
                              + '\t0.000\t0.000\t0.000\t0.000\n')
         output.close()
 
-
+# 将跟踪结果转为xml格式
 def writeXMLilya(pospath, filepath, no, method, thrs, interp, filetype='xml'):
     if os.path.exists(pospath):
         is3D = False
@@ -292,11 +292,11 @@ def writeXMLilya(pospath, filepath, no, method, thrs, interp, filetype='xml'):
 
 if __name__ == '__main__':
     
-    scenarios = ['MICROTUBULE', 'VESICLE', 'RECEPTOR', 'VIRUS']
+    scenarios = ['MICROTUBULE']  # , 'VESICLE', 'RECEPTOR', 'VIRUS'
     for scenario in scenarios:
         for snrid in [1, 2, 4, 7]:
             for dens in ['high', 'mid', 'low']:
-                path = ('D:/research/tracking/1028_trackingChallenge_dataset/XML/' + scenario + ' snr ' + str(
+                path = ('D:/research/tracking/1028_trackingChallenge_dataset/mini_xml/' + scenario + ' snr ' + str(
                     snrid) + ' density ' + dens + '.xml')
                 print(path)
                 writeTXT(path, sort=True)

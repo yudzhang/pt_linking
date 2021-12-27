@@ -48,17 +48,17 @@ def plotThrsCompare(sc, snr, den, x, a, b, jp, jt, mx, my):
     return fig
 
 
-def deleteAll(method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, usepred, interp, isbest,
+def deleteAll(pp,ppsave,method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, usepred, interp, isbest,
               togit=1):
-    if togit == 1:
-        pp = '/home/yaoyao/IDEA/dl/'
-        ppsave = '/home/yaoyao/IDEA/dl/'
-    elif togit == 0:
-        pp = '/home/yyao/IDEA/dl/'
-        ppsave = '/media/yyao/work/'
-    else:
-        pp = '/nfs/home4/yao88/IDEA/dl/'
-        ppsave = '/home/yyao/IDEA/dl/'
+    # if togit == 1:
+    #     pp = '/home/yaoyao/IDEA/dl/'
+    #     ppsave = '/home/yaoyao/IDEA/dl/'
+    # elif togit == 0:
+    #     pp = '/home/yyao/IDEA/dl/'
+    #     ppsave = '/media/yyao/work/'
+    # else:
+    #     pp = '/nfs/home4/yao88/IDEA/dl/'
+    #     ppsave = '/home/yyao/IDEA/dl/'
 
     if scenario == 'VIRUS':
         is3D = True
@@ -134,23 +134,25 @@ def deleteAll(method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, usepr
                 o = saveTo + scenario + str(snr) + den + 'RNN' + str(thrs) + '_' + str(
                     tc.lstms) + str(
                     tc.lstmo) + str(gatexy) + 'pos.xml.txt'
+        os.remove(npy)
+        os.remove(xml)
+        os.remove(o)
+        # subprocess.call(['rm', npy])
+        # subprocess.call(['rm', xml])
+        # subprocess.call(['rm', o])
 
-        subprocess.call(['rm', npy])
-        subprocess.call(['rm', xml])
-        subprocess.call(['rm', o])
 
-
-def readThrsfiles(method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, usepred, interp,
+def readThrsfiles(pp,ppsave,method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, usepred, interp,
                   isbest, togit=1):
-    if togit == 1:
-        pp = '/home/yaoyao/IDEA/dl/'
-        ppsave = '/home/yaoyao/IDEA/dl/'
-    elif togit == 0:
-        pp = '/home/yyao/IDEA/dl/'
-        ppsave = '/media/yyao/work/'
-    else:
-        pp = '/nfs/home4/yao88/IDEA/dl/'
-        ppsave = '/home/yyao/IDEA/dl/'
+    # if togit == 1:
+    #     pp = '/home/yaoyao/IDEA/dl/'
+    #     ppsave = '/home/yaoyao/IDEA/dl/'
+    # elif togit == 0:
+    #     pp = '/home/yyao/IDEA/dl/'
+    #     ppsave = '/media/yyao/work/'
+    # else:
+    #     pp = '/nfs/home4/yao88/IDEA/dl/'
+    #     ppsave = '/home/yyao/IDEA/dl/'
 
     if scenario == 'VIRUS':
         is3D = True
@@ -245,17 +247,17 @@ def readThrsfiles(method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, u
     return alpha, beta, jp, jt, onpy, oxml, oo
 
 
-def compareThrs(method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, usepred, interp,
+def compareThrs(pp, ppsave, method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, usepred, interp,
                 isbest, togit=1, isplot=True):
-    if togit == 1:
-        pp = '/home/yaoyao/IDEA/dl/'
-        ppsave = '/home/yaoyao/IDEA/dl/'
-    elif togit == 0:
-        pp = '/home/yyao/IDEA/dl/'
-        ppsave = '/media/yyao/work/'
-    else:
-        pp = '/nfs/home4/yao88/IDEA/dl/'
-        ppsave = '/home/yyao/IDEA/dl/'
+    # if togit == 1:
+    #     pp = '/home/yaoyao/IDEA/dl/'
+    #     ppsave = '/home/yaoyao/IDEA/dl/'
+    # elif togit == 0:
+    #     pp = '/home/yyao/IDEA/dl/'
+    #     ppsave = '/media/yyao/work/'
+    # else:
+    #     pp = '/nfs/home4/yao88/IDEA/dl/'
+    #     ppsave = '/home/yyao/IDEA/dl/'
 
     if scenario == 'VIRUS':
         is3D = True
@@ -275,7 +277,7 @@ def compareThrs(method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, use
     x = []
     y = []
 
-    alpha, beta, jp, jt, onpy, oxml, oouts = readThrsfiles(method, rem, add, scenario, snr, den, tt,
+    alpha, beta, jp, jt, onpy, oxml, oouts = readThrsfiles(pp,ppsave,method, rem, add, scenario, snr, den, tt,
                                                            tc,
                                                            gatexy, gatez, usepred, interp, isbest,
                                                            togit)
@@ -420,7 +422,7 @@ def compareThrs(method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, use
                    str(isthrs)[0] + stt + '_' + str(rem) + '_' + str(add) + '.png')
         pl.clf()
 
-    deleteAll(method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, usepred, interp, isbest,
+    deleteAll(pp,ppsave,method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, usepred, interp, isbest,
               togit)
 
 
@@ -429,8 +431,8 @@ def run(method, scenario, snr, den, tt, tc, add, imagesize=512, gatexy=30, gatez
     start = time.time()
 
     if togit == 1:
-        pp = '/home/yaoyao/IDEA/dl/'
-        ppsave = '/home/yaoyao/IDEA/dl/'
+        pp = 'D:/research/tracking/1028_trackingChallenge_dataset/mini_xml/'
+        ppsave = 'D:/research/tracking/1028_trackingChallenge_dataset/mini_xml/'
     elif togit == 0:
         pp = '/home/yyao/IDEA/dl/'
         ppsave = '/media/yyao/work/'
@@ -450,30 +452,32 @@ def run(method, scenario, snr, den, tt, tc, add, imagesize=512, gatexy=30, gatez
         rr = [-1, 0, 5, 10, 15, 20]
     elif add == 20:
         rr = [0, 5, 10, 15, 20]
+    elif add == -1:
+        rr = [-1]
     else:
         rr = [0]
-
-    path_m = 'models/rnnMD/' + tc.scenario + '/model_' + tc.fullname
-
+    # 模型路径加载
+    path_m = './models/rnnMD/' + tc.scenario + '/model_' + tc.fullname
+    # 判断加载模型的last还是best
     if not isbest:
         path_m = path_m + '_final'
         stt = 'Last'
     else:
         stt = 'Best'
-
+    # 阈值有几个？
     if len(tt) == 1:
         isthrs = False
     else:
         isthrs = True
-
+    # 结果保存在
     saveTo = ppsave + 'results/' + 'S' + str(tc.lstms) + 'H' + str(tc.lstmo) + 'I' + str(
         tc.feature) + '/' \
              + scenario + '/' + scenario + str(snr) + den + str(add) + method + \
              '-CLRE' + str(tc.lstms) + str(tc.lstmo) + str(usepred)[0] + str(interp)[0] + \
              str(isthrs)[0] + \
              str(tc.feature) + stt + '/'
-    ref = pp + 'data/MTJ_RNN/data/XML/' + scenario + ' snr ' + str(snr) + ' density ' + den + '.xml'
-
+    ref = pp + scenario + ' snr ' + str(snr) + ' density ' + den + '.xml'
+    # ref 是GT结果
     # Make a path to be saved in.
     if not os.path.exists(saveTo):
         os.makedirs(saveTo)
@@ -484,12 +488,12 @@ def run(method, scenario, snr, den, tt, tc, add, imagesize=512, gatexy=30, gatez
             if len(tt) == 1:
                 thrslink = thrs
 
-            if rem != -1:
+            if rem != -1: # rem=-1就是用的GT，rem不是-1 是进行了扰动的检测结果
                 print(
                     scenario + str(snr) + den + str(usepred)[0] + str(interp)[0] + str(isthrs)[0] +
                     str(tc.feature) + ' R' + str(R) + ' add' + str(add) + ' rem' + str(
                         rem) + '_' + str(thrs))
-                path = pp + 'data/MTJ_RNN/data/' + scenario + ' snr ' + str(
+                path = pp + scenario + ' snr ' + str(
                     snr) + ' density ' + den + ' R ' + str(
                     R) + ' add ' + str(add) + ' rem ' + str(rem) + '.detections.xml.txt'
                 if is3D:
@@ -523,7 +527,7 @@ def run(method, scenario, snr, den, tt, tc, add, imagesize=512, gatexy=30, gatez
             else:
                 print(scenario + str(snr) + den + str(usepred)[0] + str(interp)[0] +
                       str(isthrs)[0] + str(tc.feature) + ' GT_' + str(thrs))
-                path = pp + 'data/MTJ_RNN/data/' + scenario + ' snr ' + str(
+                path = pp + scenario + ' snr ' + str(
                     snr) + ' density ' + den + '.detections.xml.txt'
                 if is3D:
                     npy = saveTo + scenario + str(snr) + den + 'RNN' + str(
@@ -543,19 +547,24 @@ def run(method, scenario, snr, den, tt, tc, add, imagesize=512, gatexy=30, gatez
                     o = saveTo + scenario + str(snr) + den + 'RNN' + str(
                         thrs) + '_' + str(tc.lstms) + str(tc.lstmo) + str(
                         gatexy) + 'pos.xml.txt'
-
+            # ref是参考轨迹 can是候选轨迹，o是结果输出路径。
             if not tc.load_model or not os.path.exists(path_m + '/model.index') or len(path) <= 0:
                 print('No model in ' + path_m)
             else:
+                # path是每一帧检测坐标，用linkingMAP函数把各个检测坐标连接起来，得到结果npy
                 linkingMAP(path, npy, path_m, tc, thrslink, usepred, interp, isthrs, gatexy, gatez,
                            max_epLength, imagesize, isprint)
+                # 把连接结果npy写到xml中can
                 writeXML(npy, can, scenario, snr, den, method, thrslink, interp)
                 if os.path.exists(o):
-                    subprocess.call(['rm', o])
+                    os.remove(o)
+                    # subprocess.call(['rm', o])
+                # 结果评估需要两个 xml结果文件，然后输出一个 txt评价指标结果
+                # 利用比赛给的软件，评估跟踪结果
                 subprocess.call(
                     ['java', '-jar', 'trackingPerformanceEvaluation.jar', '-r', ref, '-c', can,
                      '-o', o])
-        compareThrs(method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, usepred, interp,
+        compareThrs(pp, ppsave, method, rem, add, scenario, snr, den, tt, tc, gatexy, gatez, usepred, interp,
                     isbest, togit, isplot=True)
     print('Time : ', time.time() - start)
 
@@ -663,7 +672,7 @@ def runilya(method, typepath, type, no, tt, tc, imagesize=512, gatexy=30, gatez=
 
         start = time.time()
 
-        for thrs in tt:
+        for thrs in tt: # 不同的阈值
             thrslink = 0.01 * thrs
             if len(tt) == 1:
                 thrslink = thrs
@@ -683,14 +692,21 @@ def runilya(method, typepath, type, no, tt, tc, imagesize=512, gatexy=30, gatez=
             if not tc.load_model or not os.path.exists(path_m + '/model.index') or len(path) <= 0:
                 print('No model in ' + path_m)
             else:
+                # 
                 linkingMAP(path, npy, path_m, tc, thrslink, usepred, interp, isthrs, gatexy, gatez,
                            max_epLength, imagesize, isprint)
+                # 结果格式的转换——把npy转成can-->xml文件
                 writeXMLilya(npy, can, no, method, thrslink, interp, 'npy')
+                
                 if os.path.exists(o):
                     subprocess.call(['rm', o])
+                # 利用比赛给的软件，评估跟踪结果
+                # ref是参考轨迹 can是候选轨迹，o是结果输出路径
+                # 结果评估需要两个 xml结果文件，然后输出一个 txt评价指标结果
                 subprocess.call(
                     ['java', '-jar', 'trackingPerformanceEvaluation.jar', '-r', ref, '-c', can,
-                     '-o', o])
+                     '-o', o]) #执行终端命令
+
         compareThrsilya(method, type, no, tt, tc, gatexy, gatez, usepred, interp, isbest, togit,
                         isplot=True)
         print('Time : ', time.time() - start)
@@ -922,35 +938,38 @@ if __name__ == '__main__':
                 for f in ff:
                     tc = test_config(scenario=s, lstms=ls, lstmo=lo, i=f, act='tanh', rnn='lstm',
                                      R=1, H=128, L=256, k=2048, delta=0.5, alpha=1, dropout=0.5,
-                                     bs=10000, epoch=1000, lr=1e-1)
+                                     bs=80, epoch=10, lr=1e-1)
 
                     if t == 1:
                         tt = [0.15, 0.2, 0.25, 0.3, 0.35]#[0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
                     else:
                         tt = [-1]
 
-                    for type in ['rab11','eb3']:# ['rab5', 'rab11', 'eb3']:#['rab5', 'rab6', 'rab11', 'eb3']:
-                        if type == 'rab5':
-                            for no in ['01', '02', '03', '04']:
-                                typepath = '20180712 HeLa control mCherry-Rab5 ILAS2 x100 100ms -'
-                                runilya('MAP', typepath, type, no, tt, tc, imagesize=512, gatexy=10,
-                                        gatez=5, usepred=True, interp=True, isbest=False,
-                                        isprint=False, togit=0)
-                        elif type == 'rab6':
-                            for no in ['04', '05', '08', '10']:
-                                typepath = '20180831 HeLa Control Rab6-mCherry ILAS2 x100 100ms -'
-                                #runilya('MAP', typepath, type, no, tt, tc, imagesize=512, gatexy=10,
-                                #        gatez=5, usepred=True, interp=True, isbest=False,
-                                #        isprint=False, togit=0)
-                        elif type == 'rab11':
-                            for no in ['01', '02', '03']:#, '04', '05', '06']:
-                                typepath = '20180509 Rab11-GFP control ILAS2 x100 100ms -'
-                                runilya('MAP', typepath, type, no, tt, tc, imagesize=512, gatexy=10,
-                                        gatez=5, usepred=True, interp=True, isbest=False,
-                                        isprint=False, togit=1)
-                        else:
-                            for no in ['02', '03', '04', '05']:
-                                typepath = '20151021 ILAS2 HeLa EB3-GFP control x100 500ms -'
-                                runilya('MAP', typepath, type, no, tt, tc, imagesize=512, gatexy=10,
-                                        gatez=5, usepred=True, interp=True, isbest=False,
-                                        isprint=False, togit=1)
+                    run('MAP', scenario=s, snr=1, den='low', tt=tt, tc=tc, add=-1, imagesize=512, gatexy=30, gatez=5,
+                        usepred=True, interp=False, isbest=False, isprint=False, togit=1)
+                    # for type in ['rab11','eb3']:# ['rab5', 'rab11', 'eb3']:#['rab5', 'rab6', 'rab11', 'eb3']:
+                    #     if type == 'rab5':
+                    #         for no in ['01', '02', '03', '04']:
+                    #             typepath = '20180712 HeLa control mCherry-Rab5 ILAS2 x100 100ms -'
+                    #             runilya('MAP', typepath, type, no, tt, tc, imagesize=512, gatexy=10,
+                    #                     gatez=5, usepred=True, interp=True, isbest=False,
+                    #                     isprint=False, togit=0)
+                    #     elif type == 'rab6':
+                    #         for no in ['04', '05', '08', '10']:
+                    #             typepath = '20180831 HeLa Control Rab6-mCherry ILAS2 x100 100ms -'
+                    #             #runilya('MAP', typepath, type, no, tt, tc, imagesize=512, gatexy=10,
+                    #             #        gatez=5, usepred=True, interp=True, isbest=False,
+                    #             #        isprint=False, togit=0)
+                    #     elif type == 'rab11':
+                    #         for no in ['01', '02', '03']:#, '04', '05', '06']:
+                    #             typepath = '20180509 Rab11-GFP control ILAS2 x100 100ms -'
+                    #             runilya('MAP', typepath, type, no, tt, tc, imagesize=512, gatexy=10,
+                    #                     gatez=5, usepred=True, interp=True, isbest=False,
+                    #                     isprint=False, togit=1)
+                    #     else:
+                    #         for no in ['02', '03', '04', '05']:
+                    #             typepath = '20151021 ILAS2 HeLa EB3-GFP control x100 500ms -'
+                    #             runilya('MAP', typepath, type, no, tt, tc, imagesize=512, gatexy=10,
+                    #                     gatez=5, usepred=True, interp=True, isbest=False,
+                    #                     isprint=False, togit=1)
+                    

@@ -1125,6 +1125,7 @@ class MotionRHCNN(object):
         # 从xp提取cnn特征，xp是合并了x和y
         with tf.variable_scope('features'): 
             # define cells for rnn and dropout between layers
+            # 用不同大小的卷积核提取特征
             conv11 = tf.layers.conv1d(self.xp, self._H, 1, padding='same', activation=None)
             conv12 = tf.layers.conv1d(self.xp, self._H, 2, padding='same', activation=None)
             conv13 = tf.layers.conv1d(self.xp, self._H, 3, padding='same', activation=None)
@@ -1134,9 +1135,9 @@ class MotionRHCNN(object):
             fx, fy = tf.split(fxy, [self._lstms, self._lstmo], axis=1)
         # 合并self.x原始输出和fxcnn提取的特征，并定义rnn实例，以及经过rnn，得到最后的输出  
         with tf.variable_scope('rnnx'):
-            # define cells for rnn and dropout between layers
+            # 合并手工特征8维+cnn提取的特征128*5=640维，共648维
             x_con = tf.concat([self.x, fx], 2)
-            x_fc = tf.layers.Dense(self._L, activation=None)(x_con)
+            x_fc = tf.layers.Dense(self._L, activation=None)(x_con) #全连接网络 648-->256维
             if rnn == 'lstm':
                 cellx = tf.nn.rnn_cell.LSTMCell(self._L, activation=act)
             elif rnn == 'gru':

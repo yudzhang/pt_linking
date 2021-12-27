@@ -160,18 +160,19 @@ def finishedTrack(posfinal, poslist, framelength):
 def linkingMAP(path_data, path_npy, path_m, tc, thrs, usepred=True, interp=False, isthrs=False,
                gatexy=15, gatez=3,
                framelength=100, imagesize=512, isprint=False):
+               # thrs就是 从无到有的置信度.
     start = time.time()
     print('Linking start ... ')
     if tc.scenario == 'VIRUS':
         is3D = True
     else:
         is3D = False
-
+    # ==>获取所有坐标数据，构建开头的xp
     data = getData(path_data)
     poslist = []
     posfinal = []
     empty = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
-    t = data[data[:, 2] == 0]
+    t = data[data[:, 2] == 0] # 第一帧的粒子
     t = np.random.permutation(t)
     for i in range(len(t)):
         tr = []
@@ -181,12 +182,12 @@ def linkingMAP(path_data, path_npy, path_m, tc, thrs, usepred=True, interp=False
         else:
             for s in range(tc.lstms):
                 tr.append(empty)
-        tr.append(t[i])
-        poslist.append(tr)
+        tr.append(t[i]) # 构建第一帧的xp形式
+        poslist.append(tr) # 对于第一帧的每个坐标，都构建一个头形式
 
     if isprint:
         print('Frame: ' + str(1) + '/' + str(framelength))
-
+    # ===》构建模型
     # reset and initializing
     tf.reset_default_graph()
     if tc.feature < 6:
@@ -263,10 +264,10 @@ def linkingMAP(path_data, path_npy, path_m, tc, thrs, usepred=True, interp=False
         sess.run(init)
         saver.restore(sess, path_m + '/model')
 
-        for f in range(1, framelength):
+        for f in range(1, framelength): #获取第二帧，第三帧，第四帧。。。的检测结果
             if isprint:
                 print('Frame: ' + str(f + 1) + '/' + str(framelength))
-
+            # 获取第f帧所有的检测坐标
             detectionsM = getDets(f, data, tc.lstmo)  # detection position at frame f
             costs = []
             nextt = []
@@ -274,15 +275,17 @@ def linkingMAP(path_data, path_npy, path_m, tc, thrs, usepred=True, interp=False
             for o in range(len(detectionsM)):
                 detscost.append(np.zeros((len(detectionsM[o]) + 1)))
             # compute which track link with which detections counts the times per detections
-            for pos in range(len(poslist)):
+            for pos in range(len(poslist)): #对于每个tracklet,与下一时刻检测结果相连,作为轨迹假设,通过网络预测评分
                 posi = poslist[pos]  # tracklets
-                true_track = data[data[:, 4] == posi[-1][4]]
+                true_track = data[data[:, 4] == posi[-1][4]] #获得该坐标开头的true track
                 # true track no added fake detections since added fake detections [5] != 255
                 true_track = true_track[true_track[:, 5] == 255]
                 if len(true_track) < 1:
                     print(true_track)
                 # true_trackI = trackI(true_track, is3D)
-                mx, mxp, my, mxloc, pd, realy, realp, truepoints, realx = getSequence(posi,
+                # getSequence 在候选范围内的会自动连成多个轨迹假设
+                mx, mxp, my, mxloc, pd, realy, realp, truepoints, realx = getSequence(path_data.split(tc.scenario)[0],
+                                                                                      posi,
                                                                                       true_track,
                                                                                       detectionsM,
                                                                                       tc, gatexy,
@@ -293,7 +296,7 @@ def linkingMAP(path_data, path_npy, path_m, tc, thrs, usepred=True, interp=False
                     motion.y: my,
                     motion.xlastloc: mxloc,
                     motion._dropout: 1
-                })
+                }) # 通过model评估每一个假设的得分和评价结果. c是分类,t是下一坐标,d是匹配cost
                 if usepred:  # use classification score
                     conf = mpc[:, 0] * np.array(pd)
                 else:  # use cost score
@@ -319,8 +322,8 @@ def linkingMAP(path_data, path_npy, path_m, tc, thrs, usepred=True, interp=False
                                                                                detscost[ryi][int(
                                                                                    realy[pi][ryi][
                                                                                        9])])
-                    costs.append(c)
-
+                    costs.append(c) # cost 为后面真正的匹配做准备
+            # 到此,已经获得,当前帧,所有已连接轨迹的所有轨迹假设，的Cost
             detectionN = [
                 len(poslist) + 1]  # existing track number + 1 (not in any existing tracks)
             for di in range(tc.lstmo):
@@ -379,7 +382,7 @@ def linkingMAP(path_data, path_npy, path_m, tc, thrs, usepred=True, interp=False
                                          len(poslist), ai, aai, aaai]
                                 costs.append(c)
 
-            # call gurobi solver
+            # call gurobi solver 线性混合整数优化 detN记录了每个tracklet 有多少个假设 +1
             mod, modstatus, poslist = grbsolver(costs, poslist, detectionN, detectionsM, tc.lstmo,
                                                 nextt, is3D, isprint)
             if mod:
